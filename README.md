@@ -1,5 +1,5 @@
 # CrackerBarrel
-Finds solutions to Cracker Barrel's peg game. I was inspired to write this after my friends and I had gone to Cracker Barrel for breakfast after a late night. They were both able to solve the peg game, but I didn't have the patience. My food stole my attention soon afterwards.
+Finds solutions to Cracker Barrel's peg game. I was inspired to write this after my friends and I had gone to Cracker Barrel for breakfast after a late night. They were both able to solve the peg game while we were waiting for our food, but I didn't have the patience. My food stole my attention soon afterwards.
 
 Once my belly was full, I figured I would just have my computer solve the game for me. I was just getting into algorithms at the time and thought it would be a useful application of the knowledge I had learned.
 
@@ -20,7 +20,7 @@ Download and run with Python 3.6 or later. Running the script will either print 
 
 ## Running
 
-There are two command line arguments: "print" and "save". "print" will print out the first solution to the game that the algorithm finds. "save" will save all solutions to a CSV file in the same folder as the script (solutions.csv).
+There are two command line arguments: "print" and "save". "save" will save all solutions to a CSV file in the same folder as the script (solutions.csv). "print" will stop the program from printing out the first solution to the game that it finds. 
 
 ## Authors
 

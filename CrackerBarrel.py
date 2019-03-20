@@ -20,7 +20,7 @@ As the Peg Game board says:
 
 
 import copy
-import collections
+import sys
 
 
 # Define the triangular board; all spaces but the top corner are filled.
@@ -31,37 +31,48 @@ board_nums = []
 
 # Create dictionaries that define adjacent pegs and jump options.
 # peg_num gives the board matrix coordinates for that peg number.
-# adjacent_pegs gives a list of holes adjacent to that hole number.
+# adjacent_holes gives a list of holes adjacent to that hole number.
 # peg_jumps gives the middle hole number for a legitimate jump for two jump-able holes.
 peg_num = {}
-adjacent_pegs = {}
+adjacent_holes = {}
 peg_jumps = {}
+
+# Handle arguments.
+print_out = True
+save = False
+for arg in sys.argv:
+    if arg == 'print':
+        print_out = False
+    elif arg == 'save':
+        save = True
+    else:
+        pass
 
 
 # Create the triangular board with given side length of n.
-def peggame(n):
+def peg_game(n):
     
     # Clear dicts and lists.
     global init_board
-    init_board = []
     global board_nums
-    board_nums = []
     global peg_num
-    peg_num = {}
-    global adjacent_pegs
-    adjacent_pegs = {}
+    global adjacent_holes
     global peg_jumps
+    init_board = []
+    board_nums = []
+    peg_num = {}
+    adjacent_holes = {}
     peg_jumps = {}
     
-    # Initiate the board, board_nums, and peg_num.
+    # Initiate  board, board_nums, and peg_num.
     counter = 1
     for i in range(n):
-        
+
         init_board.append([])
         board_nums.append([])
         
         for j in range(i+1):
-            
+
             init_board[i].append(1)
             board_nums[i].append(counter)
             peg_num[counter] = [i, j]
@@ -131,18 +142,18 @@ def peggame(n):
             temp_pegs.remove(i)
         temp_pegs = list(set(temp_pegs))
         temp_pegs.sort()
-        adjacent_pegs[i] = temp_pegs
+        adjacent_holes[i] = temp_pegs
     
     # Build a dictionary of jump-able paths.
     for i in range(1, len(peg_num)+1):
         for j in range(1, len(peg_num)+1):
             
             # Get shared pegs.
-            middle_pegs = list(set(adjacent_pegs[i]) & set(adjacent_pegs[j]))
+            middle_pegs = list(set(adjacent_holes[i]) & set(adjacent_holes[j]))
             
             # If they share more or less than 1 peg, they do not make a jump-able path.
             # Also exclude adjacent pegs, as some can only share one peg.
-            if len(middle_pegs) is not 1 or i in adjacent_pegs[j]:
+            if len(middle_pegs) is not 1 or i in adjacent_holes[j]:
                 continue
             
             # Add to the dictionary.
@@ -165,6 +176,7 @@ def peggame(n):
         print_board(init_board)
 
 
+# Iterate through all possible moves to find all solutions.
 def iterate_solve(start_board, jump_list):
     
     if sum_board(start_board) == 1:
@@ -190,22 +202,21 @@ def iterate_solve(start_board, jump_list):
         return -1
 
 
+# Move the pegs after checking for jump-ability and correct peg placement.
 def move_peg(board, start, end):
-    
-    # Move the pegs after checking for jump-ability and correct peg placement.
-    
+
     # Run jump checks.
     if (start, end) in peg_jumps:
         
         if (board[peg_num[start][0]][peg_num[start][1]] == 1 and
                 board[peg_num[peg_jumps[(start, end)]][0]][peg_num[peg_jumps[(start, end)]][1]] == 1 and
                 board[peg_num[end][0]][peg_num[end][1]] == 0):
-        
+
             board[peg_num[start][0]][peg_num[start][1]] = 0
             board[peg_num[peg_jumps[(start, end)]][0]][peg_num[peg_jumps[(start, end)]][1]] = 0
             board[peg_num[end][0]][peg_num[end][1]] = 1
             return 1
-            
+
         else:
             return 0
     
@@ -228,17 +239,14 @@ def move_peg(board, start, end):
         return 0
 
 
-# Sum the board.
+# Return number of pegs on board.
 def sum_board(board):
-
-    # Return number of pegs on board.
     return sum([sum(row) for row in board])
 
 
 # Print the board.
 def print_board(board):
 
-    # Print the board, line by line.
     for element in board:
         print(element)
 
@@ -249,4 +257,4 @@ def print_board(board):
 if __name__ == '__main__':
 
     # The original Peg Game has n = 5.
-    peggame(5)
+    peg_game(5)
