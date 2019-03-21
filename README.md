@@ -8,7 +8,7 @@ The peg game can be seen here: https://www.wikihow.com/Win-the-Peg-Game
 
 ### Prerequisites
 
-You need the following python packages:
+You need the following python packages outside the standard library:
 
 ```
 NONE
