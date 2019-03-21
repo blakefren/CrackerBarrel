@@ -225,12 +225,10 @@ def iterate_solve(start_board, jump_list):
 
     # Check to see if the board has already been evaluated.
     if convert_board(start_board) in finished_boards:
-        # print('len(finished_boards) = ' + str(len(finished_boards)))  # TEMP
         return False
 
     if sum_board(start_board) == 1:
         solutions.append(jump_list)
-        # print('len(solutions) = ' + str(len(solutions)))  # TEMP
         return True
 
     has_child_solution = False
