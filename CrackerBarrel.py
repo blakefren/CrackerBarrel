@@ -21,6 +21,10 @@ As the Peg Game board says:
 
 import copy
 import sys
+import csv
+import os
+from time import time
+from random import randint
 
 
 # Define the triangular board; all spaces but the top corner are filled.
@@ -30,23 +34,31 @@ init_board = []
 board_nums = []
 
 # Create dictionaries that define adjacent pegs and jump options.
+# peg_coord gives the peg number for board matrix coordinates.
 # peg_num gives the board matrix coordinates for that peg number.
 # adjacent_holes gives a list of holes adjacent to that hole number.
 # peg_jumps gives the middle hole number for a legitimate jump for two jump-able holes.
+# fail_boards is used to memoize the iterate_solve method by skipping boards that have no solutions.
+peg_coord = {}
 peg_num = {}
 adjacent_holes = {}
 peg_jumps = {}
+fail_boards = {}
 
 # Handle arguments.
-print_out = True
+print_out = False
 save = False
 for arg in sys.argv:
     if arg == 'print':
-        print_out = False
+        print_out = True
     elif arg == 'save':
         save = True
     else:
         pass
+
+# Set other global variables.
+recursion_depth = sys.getrecursionlimit()
+solutions = []
 
 
 # Create the triangular board with given side length of n.
@@ -64,7 +76,7 @@ def peg_game(n):
     adjacent_holes = {}
     peg_jumps = {}
     
-    # Initiate  board, board_nums, and peg_num.
+    # Initiate  board, board_nums, peg_coord, and peg_num.
     counter = 1
     for i in range(n):
 
@@ -75,14 +87,16 @@ def peg_game(n):
 
             init_board[i].append(1)
             board_nums[i].append(counter)
+            peg_coord[(i, j)] = counter
             peg_num[counter] = [i, j]
             counter += 1
             
     init_board[0][0] = 0
-    print('\n' + str(n) + 'x' + str(n) + ' board peg numbers:')
-    print_board(board_nums)
-    print(str(n) + 'x' + str(n) + ' board peg locations:')
-    print_board(init_board)
+    if print_out:
+        print('\n' + str(n) + 'x' + str(n) + ' board peg numbers:')
+        print_board(board_nums)
+        print(str(n) + 'x' + str(n) + ' board peg locations:')
+        print_board(init_board)
 
     # Build a dictionary of adjacent pegs.
     for i in range(1, len(peg_num)+1):
@@ -160,28 +174,57 @@ def peg_game(n):
             peg_jumps[i, j] = middle_pegs[0]
     
     # Call the iterative method, save results.
-    solutions = iterate_solve(init_board, [])
-    
-    if solutions == -1:
-        print('\nNo solution\n')
+    start = process_time()
+    iterate_solve(init_board, [])
+    end = process_time()
+    time_elapsed = end - start
+
+    global solutions
+    if solutions == -1 or len(solutions) == 0:
+
+        print('\nNo solutions\n')
         
     else:
-        
-        for element in solutions:
-            move_peg(init_board, element[0], element[1])
-            
-        print('\nFinal ordered solution:\n')
-        print(solutions)
-        print()
-        print_board(init_board)
+
+        print('\nFound ' + str(len(solutions)) + ' solutions in ' + str(time_elapsed) + ' seconds.\n')
+
+        # Print out a random solution if user desires.
+        if print_out:
+
+            rand_num = randint(0, len(solutions))
+            for element in solutions[rand_num]:
+                move_peg(init_board, element[0], element[1])
+            print('\nRandom solution:\n')
+            print(solutions[rand_num])
+            print()
+            print_board(init_board)
+
+        # Save the solutions to a CSV file if user desires.
+        if save:
+
+            header = ['Move' + str(i) for i in range(1, 13+1)]  # All solutions have 13 moves.
+            header = ['SolutionNum'] + header
+            filename = '.\\Solutions.csv'
+
+            if os.path.isfile(filename):
+                os.remove(filename)
+            with open(filename, 'w', newline='') as file:
+                w = csv.writer(file)
+                w.writerow(header)
+                for i, solution in enumerate(solutions):
+                    w.writerow([i+1] + solution)
 
 
 # Iterate through all possible moves to find all solutions.
 def iterate_solve(start_board, jump_list):
-    
+
+    global solutions
+
     if sum_board(start_board) == 1:
-        return jump_list
-    
+        solutions.append(jump_list)
+        print(len(solutions))  # TEMP
+        return
+
     for element in peg_jumps:
         
         temp_board = copy.deepcopy(start_board)
@@ -190,16 +233,17 @@ def iterate_solve(start_board, jump_list):
             
             temp_list = copy.deepcopy(jump_list)
             temp_list.append(element)
-            temp = iterate_solve(temp_board, temp_list)
-            
-            if temp == -1:
+            # temp = iterate_solve(temp_board, temp_list)
+            iterate_solve(temp_board, temp_list)
+
+            '''if temp == -1:
                 continue
-            
+
             else:
-                return temp
-    
-    if sum_board(start_board) is not 1:
-        return -1
+                return temp'''
+
+    '''if sum_board(start_board) is not 1:
+        return -1'''
 
 
 # Move the pegs after checking for jump-ability and correct peg placement.
@@ -216,7 +260,6 @@ def move_peg(board, start, end):
             board[peg_num[peg_jumps[(start, end)]][0]][peg_num[peg_jumps[(start, end)]][1]] = 0
             board[peg_num[end][0]][peg_num[end][1]] = 1
             return 1
-
         else:
             return 0
     
@@ -231,12 +274,24 @@ def move_peg(board, start, end):
             board[peg_num[peg_jumps[(end, start)]][0]][peg_num[peg_jumps[(end, start)]][1]] = 0
             board[peg_num[start][0]][peg_num[start][1]] = 0
             return 1
-
         else:
             return 0
 
     else:
         return 0
+
+
+# Given a board, return a list of current peg positions.
+def convert_board(board):
+
+    peg_pos = []
+
+    for i, row in enumerate(board):
+        for j, peg in enumerate(row):
+            if peg == 1:
+                peg_pos.append(peg_coord[(i, j)])
+
+    return peg_pos
 
 
 # Return number of pegs on board.

@@ -20,7 +20,7 @@ Download and run with Python 3.6 or later. Running the script will either print 
 
 ## Running
 
-There are two command line arguments: "print" and "save". "save" will save all solutions to a CSV file in the same folder as the script (solutions.csv). "print" will stop the program from printing out the first solution to the game that it finds. 
+There are two command line arguments: "print" and "save". "save" will save all solutions to a CSV file in the same folder as the script (solutions.csv). "print" will print out a random solution to the game. 
 
 ## Authors
 
